@@ -1,8 +1,10 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Github, Globe, MapPin, Users } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Github, Globe, MapPin, Users, X } from 'lucide-react';
 import { projects, insights } from './data/homepage';
 import { useScrollReveal } from './JointHomepage';
+import { EventsGlobe, EVENT_PHOTOS, type EventPhoto } from './threeui-events/EventsGlobe';
+import { PetalFall } from './threeui-events/PetalFall';
 
 function useRouteTitle(title: string) {
   const { pathname } = useLocation();
@@ -144,74 +146,75 @@ export function AboutPage() {
 }
 
 /* ----------------------------------------------------------------- events */
-const FEATURED_EVENTS = [
-  { id: 'hackops', name: 'HackOps', type: 'Hackathon', note: 'Build through the night with the committee — teams, mentors and a demo floor at dawn.', image: '/events/hackops.webp', alt: 'HackOps event artwork' },
-  { id: 'technograd', name: 'Technograd', type: 'Flagship', note: 'The committee\u2019s flagship technology gradation event — projects judged, winners celebrated on stage.', image: '/events/technograd.webp', alt: 'Technograd event artwork' },
-];
-
-const ARCHIVE_EVENTS = [
-  { id: 'technograd-winners', name: 'Technograd — Winners', type: 'Awards', note: 'Winners celebrated on stage at Technograd.', image: '/globe/technograd-winners.jpg', alt: 'Technograd winners on stage' },
-  { id: 'seminar-audience', name: 'Seminars', type: 'Series', note: 'A full seminar room during a committee session.', image: '/globe/seminar-audience.jpg', alt: 'Audience at a committee seminar' },
-  { id: 'synergy', name: 'Synergy', type: 'Hackathon', note: 'The synergy of data and building, from earlier editions.', image: '/globe/previous/synergy.jpg', alt: 'Synergy event artwork' },
-  { id: 'design-dojo', name: 'Design Dojo', type: 'Workshop', note: 'Design practice, session after session.', image: '/globe/previous/design-dojo.jpg', alt: 'Design Dojo event artwork' },
-  { id: 'inauguration', name: 'Inauguration', type: 'Ceremony', note: 'Where the chapter began.', image: '/globe/previous/inauguration.jpg', alt: 'Inauguration event artwork' },
-];
 
 export function EventsPage() {
   useRouteTitle('Events');
-  useScrollReveal();
+  const [selected, setSelected] = useState<EventPhoto | null>(null);
+  const step = (d: 1 | -1) => setSelected(cur => {
+    if (!cur) return cur;
+    const i = EVENT_PHOTOS.findIndex(p => p.id === cur.id);
+    return EVENT_PHOTOS[(i + d + EVENT_PHOTOS.length) % EVENT_PHOTOS.length];
+  });
   return (
-    <main id="main">
-      <PageHero
-        eyebrow="CHAPTER 02 · EVENTS"
-        title={<>Gatherings on <em>the path.</em></>}
-        lead="Sessions, seminars and build nights from the committee. Dates, venues and registration move with each semester — the official committee channels carry the current ones."
-        stat="2 featured gatherings · 5 archive records"
-      />
-      <section className="page-section" aria-label="Featured events">
-        <div className="site-shell">
-          <SectionHead kicker="FEATURED" title={<>The two big <em>nights.</em></>} meta="2 EVENTS" />
-          <div className="event-features">
-            {FEATURED_EVENTS.map((ev, i) => (
-              <article className="event-feature reveal" key={ev.id}>
-                <div className="ef-media">
-                  <img src={ev.image} alt={ev.alt} loading="lazy" decoding="async" />
-                  <span className="ef-chip">FEATURED</span>
-                  <span className="ef-index">{String(i + 1).padStart(2, '0')}</span>
-                </div>
-                <div className="ef-copy">
-                  <div className="ef-meta"><span>{ev.type}</span><span>ARCHIVE</span></div>
-                  <h3>{ev.name}</h3>
-                  <p>{ev.note}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+    <main id="main" className="events-orbit">
+      <div className="orbit-stage">
+        <div className="orbit-ellipse">
+          <EventsGlobe onSelect={setSelected} />
         </div>
-      </section>
-      <section className="page-section page-section--alt" aria-label="Event archive">
-        <div className="site-shell">
-          <SectionHead kicker="FROM THE ARCHIVE" title={<>Documented <em>editions.</em></>} meta="5 RECORDS" />
-          <div className="event-mosaic">
-            {ARCHIVE_EVENTS.map((ev, i) => (
-              <figure className={`mosaic-card reveal${i === 0 ? ' mosaic-lead' : ''}`} key={ev.id}>
-                <img src={ev.image} alt={ev.alt} loading="lazy" decoding="async" />
-                <span className="mc-type">{ev.type.toUpperCase()}</span>
-                <figcaption>
-                  <strong>{ev.name}</strong>
-                  <span>{ev.note}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-          <p className="page-note reveal">
-            Verification note: past editions of these gatherings are documented by the committee's own
-            photo archive (shown here). Current schedules live with the committee, not on this page —
-            nothing invented here.
-          </p>
-        </div>
-      </section>
+        <PetalFall density={110} />
+        <img className="orbit-branch orbit-branch-bl" src="/landing-pages/secret-pathways-assets/foreground/png/sakura-branch.webp" alt="" aria-hidden="true" />
+        <img className="orbit-branch orbit-branch-br" src="/landing-pages/secret-pathways-assets/foreground/png/maple-leaves.webp" alt="" aria-hidden="true" />
+        <img className="orbit-branch orbit-branch-tl" src="/landing-pages/secret-pathways-assets/foreground/png/maple-leaves.webp" alt="" aria-hidden="true" />
+        <img className="orbit-branch orbit-branch-tr" src="/landing-pages/secret-pathways-assets/foreground/png/sakura-branch.webp" alt="" aria-hidden="true" />
+      </div>
+      {selected && (
+        <LiquidPhoto photo={selected} onClose={() => setSelected(null)} onStep={step} />
+      )}
     </main>
+  );
+}
+
+function LiquidPhoto({ photo, onClose, onStep }: { photo: EventPhoto; onClose: () => void; onStep: (d: 1 | -1) => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') onStep(1);
+      if (e.key === 'ArrowLeft') onStep(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose, onStep]);
+  const pos = EVENT_PHOTOS.findIndex(p => p.id === photo.id) + 1;
+  return (
+    <div className="evt-liquid" role="dialog" aria-modal="true" aria-label={photo.name} onClick={onClose}>
+      <span className="evt-blob evt-blob-a" aria-hidden="true" />
+      <span className="evt-blob evt-blob-b" aria-hidden="true" />
+      <button type="button" className="evt-lb-btn evt-lb-close" onClick={onClose} aria-label="Close photo viewer">
+        <X size={20} aria-hidden="true" />
+      </button>
+      <button type="button" className="evt-lb-btn evt-lb-prev" aria-label="Previous photo" onClick={e => { e.stopPropagation(); onStep(-1); }}>
+        <ChevronLeft size={22} aria-hidden="true" />
+      </button>
+      <figure className="evt-liquid-figure" onClick={e => e.stopPropagation()}>
+        <img src={photo.src} alt={photo.name} />
+        <figcaption>
+          <span className="evt-lb-type">{photo.type.toUpperCase()}</span>
+          <div>
+            <strong>{photo.name}</strong>
+            <span className="evt-lb-note">{photo.note}</span>
+          </div>
+          <span className="evt-lb-count">{pos} / {EVENT_PHOTOS.length}</span>
+        </figcaption>
+      </figure>
+      <button type="button" className="evt-lb-btn evt-lb-next" aria-label="Next photo" onClick={e => { e.stopPropagation(); onStep(1); }}>
+        <ChevronRight size={22} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 

@@ -381,6 +381,8 @@ h1:not(.jp), h2:not(.jp), h3:not(.jp), .display:not(.jp) {
 .h-sec { font-size: clamp(30px, 4vw, ${px((type.headingSize * 60) / 46)}); }
 .body-lg { font-size: clamp(14px, 1.02vw, ${px(type.bodySize)}); }
 .body { font-size: ${px(Math.max(11, type.bodySize - 3))}; }
+/* site shell owns the loading ritual now — the scene must never cover it */
+#pre { display: none !important; }
 `,
 };
 
